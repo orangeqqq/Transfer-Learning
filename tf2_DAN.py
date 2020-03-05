@@ -75,7 +75,7 @@ class AdaptiveLayer(tf.keras.layers.Layer):
         if training:
             split_index = len(outputs)//2
             domain = [outputs[:split_index],outputs[split_index:]]
-            domain_loss = mk_MMD(domain[0],domain[1])
+            domain_loss = self.mk_MMD(domain[0],domain[1])
 
             return outputs,domain_loss
         
@@ -93,7 +93,7 @@ class AdaptiveLayer(tf.keras.layers.Layer):
         i = 0
         distance = tf.constant(0,dtype=tf.float32)
         while i < num_s :
-            distance += g_k(domain1_inputs[i],domain1_inputs[i+1],
+            distance += self.g_k(domain1_inputs[i],domain1_inputs[i+1],
                 domain2_inputs[i],domain2_inputs[i+1])
             i +=2
 
@@ -104,8 +104,8 @@ class AdaptiveLayer(tf.keras.layers.Layer):
 
 
     def g_k(self,xs_i,xs_j,xt_i,xt_j):
-        y = m_PSDkernels(xs_i,xs_j) + m_PSDkernels(xt_i,xt_j) \
-            - m_PSDkernels(xs_i,xt_j) - m_PSDkernels(xs_j,xt_i)
+        y = self.m_PSDkernels(xs_i,xs_j) + self.m_PSDkernels(xt_i,xt_j) \
+            - self.m_PSDkernels(xs_i,xt_j) - self.m_PSDkernels(xs_j,xt_i)
 
         return y 
 
@@ -116,7 +116,7 @@ class AdaptiveLayer(tf.keras.layers.Layer):
         convex_sum = tf.constant(0,dtype=tf.float32)
 
         for beta_u in m_beta:
-            convex_sum += beta_u * kernel_u(x_i,x_j,gamma_u)
+            convex_sum += beta_u * self.kernel_u(x_i,x_j,gamma_u)
             gamma_u = gamma_u*2
 
         return convex_sum
@@ -218,7 +218,7 @@ class DAN(tf.keras.Model):
             x,mmk_1 = self.dense_ada8(x,training=training)
             x,mmk_2 = self.dense_ada9(x,training=training)
             logits,mmk_3 = self.dense_ada10(x,training=training)
-            mmk = [mmk_1,mmk_2,mmk_3]
+            mmk = np.array([mmk_1,mmk_2,mmk_3])
             outputs = tf.nn.softmax(logits)
 
             return outputs,mmk
@@ -319,7 +319,7 @@ train_data,train_labels,test_data,test_labels = target_load.get_train_test_set(s
 learning_rate = 0.01
 batch_size = 50
 n_epoch = 30
-lamda = [0.5,0.5,1.]
+lamda = np.array([0.5,0.5,1.])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate= learning_rate)
 
@@ -327,15 +327,34 @@ model = DAN()
 accuracy = tf.keras.metrics.SparseCategoricalAccuracy()
 
 def shuff_batch(X,y,batch_size):
-    #tensor 不支持数组切片的方式，要转成np.array
-    X =np.array(X)
-    y =np.array(y)
+    #tensor list不支持数组切片的方式，要转成np.array 这步非常耗时
+    #X =np.array(X)
+    #y =np.array(y)
 
     rnd_idx = np.random.permutation(len(X))
     n_batch = len(X)//batch_size
-    for idx_batch in np.array_split(rnd_idx,n_batch):
-        X_batch,y_batch = X[idx_batch],y[idx_batch]
+    #for idx_batch in np.array_split(rnd_idx,n_batch):  #第一组竟然会切出batch_size+1个
+    for idx_batch in list_split_even(rnd_idx,n_batch,batch_size):  
+        X_batch,y_batch = [],[]
+        for idx in idx_batch:
+            X_batch.append(X[idx])
+            y_batch.append(y[idx])
+        #X_batch,y_batch = X[idx_batch],y[idx_batch]
         yield X_batch,y_batch
+
+def list_split_even(alist,n_batch,batch_size):
+    #对随机指标按num分割，并保证最后一批长度为偶数
+    idx_batchs = []
+    if (len(alist)%batch_size)%2 == 1:
+        alist.pop()
+
+    for i in range(n_batch):
+        idx_batchs.append(alist[i*batch_size:(i+1)*batch_size])
+    idx_batchs.append(alist[n_batch*batch_size:])
+
+    return idx_batchs
+    
+
 
 class TargetBatch(object):
     def __init__(self,X,y):
@@ -350,11 +369,15 @@ class TargetBatch(object):
             self.rest_labels = self.orgin_labels
 
         if len(self.rest_labels) == length:
-             X = self.rest_data
-             y = self.rest_labels
+            X = self.rest_data
+            y = self.rest_labels
         else:
-             X = self.rest_data[:length]
-             y = self.rest_labels[:length]
+            X = self.rest_data[:length]
+            y = self.rest_labels[:length]
+
+            self.rest_data = self.rest_data[length:]
+            self.rest_labels = self.rest_labels[length:]
+
 
         return X,y
 
@@ -364,7 +387,7 @@ for epoch in range(n_epoch):
     for sX_batch,sy_batch in shuff_batch(source_data,source_labels,batch_size):
         #保证与当次source batch 内样本数目相同
         tX_batch,ty_batch = target_batch.get_batch(len(sy_batch))
-        st_batch = tf.concat([sX_batch,tX_batch],axis=0)
+        st_batch = tf.concat([sX_batch,tX_batch],axis=0)    #将数据拼接并转为tensor
                
         with tf.GradientTape() as tape:
             output_batch,mmd = model(st_batch)
@@ -372,24 +395,28 @@ for epoch in range(n_epoch):
             #当前为无监督，targetdata全部无label
             pred_batch = output_batch[:len(sy_batch)]
             loss_batch = tf.keras.losses.sparse_categorical_crossentropy(sy_batch,pred_batch,from_logits= False) 
-            loss = tf.reduce_mean(loss_batch) + tf.sum(lamda*mmd)
+            loss = tf.reduce_mean(loss_batch) + np.sum(lamda*mmd)
 
         gradient = tape.gradient(loss,model.variables)
         optimizer.apply_gradients(grads_and_vars=zip(gradient,model.variables))
 
     if epoch%2 == 0:
-        y_pred = model.predict(X_batch)
-        acc = accuracy(y_batch,y_pred)
-        print("epoch %d train accuracy is %f"%(epoch,acc))
+        #转到测试模式
+        model.training = False
+        ty_pred = model(tf.convert_to_tensor(tX_batch))
+        acc = accuracy(ty_batch,ty_pred)
+        print("epoch %d target domain train accuracy is %f"%(epoch,acc))
+        
+        model.training = True
 
 #评估
 model.training = False 
 
-y_pred = model.predict(test_data)
+y_pred = model(tf.convert_to_tensor(test_data))
 acc = accuracy(test_labels,y_pred)
 print("Test set accuracy is %f"%acc)
 
 
 
-logger.info('logging finish')
+logger.info('------------------logging finish---------------------')
 
