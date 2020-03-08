@@ -315,7 +315,7 @@ source_data,source_labels,_,_ = source_load.get_train_test_set(split_ratio = 1.0
 train_data,train_labels,test_data,test_labels = target_load.get_train_test_set(split_ratio = 0.5)
 
 
-#==============================训练=====================================
+#==============================训练设置=====================================
 learning_rate = 0.01
 batch_size = 50
 n_epoch = 30
@@ -324,7 +324,7 @@ lamda = np.array([0.5,0.5,1.])
 optimizer = tf.keras.optimizers.Adam(learning_rate= learning_rate)
 
 model = DAN()
-accuracy = tf.keras.metrics.SparseCategoricalAccuracy()
+#accuracy = tf.keras.metrics.SparseCategoricalAccuracy()
 
 def shuff_batch(X,y,batch_size):
     #tensor list不支持数组切片的方式，要转成np.array 这步非常耗时
@@ -355,7 +355,7 @@ def list_split_even(alist,n_batch,batch_size):
     return idx_batchs
     
 
-
+#保证target domian data 可以循环使用
 class TargetBatch(object):
     def __init__(self,X,y):
         self.rest_data = X
@@ -383,39 +383,71 @@ class TargetBatch(object):
 
 target_batch = TargetBatch(train_data,train_labels)
 
+loss_object = tf.keras.losses.SparseCategoricalCrossentropy()
+
+train_loss = tf.keras.metrics.Mean(name='train_loss')
+train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
+
+test_loss = tf.keras.metrics.Mean(name='test_loss')
+test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='test_accuracy')
+#========================训练=============================================
+#@tf.function
+def train_step(sX_batch,tX_batch,sy_batch):
+    #只对部分target data作为有label求交叉熵
+    #当前为无监督，targetdata全部无label
+
+    st_batch = tf.concat([sX_batch,tX_batch],axis=0)    #将数据拼接并转为tensor
+    with tf.GradientTape() as tape:
+        output_batch,mmd = model(st_batch)
+
+        pred_batch = output_batch[:len(sy_batch)]
+        loss_batch = loss_object(sy_batch,pred_batch)    #自动的将batch中每个的loss加和平均
+        loss = loss_batch + np.sum(lamda*mmd)
+
+    gradient = tape.gradient(loss,model.variables)
+    optimizer.apply_gradients(grads_and_vars=zip(gradient,model.variables))
+
+    train_loss(loss)
+    train_accuracy(sy_batch, pred_batch)
+
+#@tf.function
+def test_step(images, labels):
+    model.training = False
+
+    predictions = model(tf.convert_to_tensor(images))
+    t_loss = loss_object(labels, predictions)
+
+    test_loss(t_loss)
+    test_accuracy(labels, predictions)
+
+    model.training = True
+
+#开始迭代
 for epoch in range(n_epoch):
+    #每轮清除缓存
+    train_loss.reset_states()
+    train_accuracy.reset_states()
+    test_loss.reset_states()
+    test_accuracy.reset_states()
+
     for sX_batch,sy_batch in shuff_batch(source_data,source_labels,batch_size):
         #保证与当次source batch 内样本数目相同
         tX_batch,ty_batch = target_batch.get_batch(len(sy_batch))
-        st_batch = tf.concat([sX_batch,tX_batch],axis=0)    #将数据拼接并转为tensor
-               
-        with tf.GradientTape() as tape:
-            output_batch,mmd = model(st_batch)
-            #只对部分target data作为有label求交叉熵
-            #当前为无监督，targetdata全部无label
-            pred_batch = output_batch[:len(sy_batch)]
-            loss_batch = tf.keras.losses.sparse_categorical_crossentropy(sy_batch,pred_batch,from_logits= False) 
-            loss = tf.reduce_mean(loss_batch) + np.sum(lamda*mmd)
-
-        gradient = tape.gradient(loss,model.variables)
-        optimizer.apply_gradients(grads_and_vars=zip(gradient,model.variables))
-
-    if epoch%2 == 0:
-        #转到测试模式
-        model.training = False
-        ty_pred = model(tf.convert_to_tensor(tX_batch))
-        acc = accuracy(ty_batch,ty_pred)
-        print("epoch %d target domain train accuracy is %f"%(epoch,acc))
+        #执行
+        train_step(sX_batch,tX_batch,sy_batch)
         
-        model.training = True
-
-#评估
-model.training = False 
-
-y_pred = model(tf.convert_to_tensor(test_data))
-acc = accuracy(test_labels,y_pred)
-print("Test set accuracy is %f"%acc)
-
+    #if epoch%2 == 0:
+        #转到测试模式
+    test_step(test_data,test_labels)
+        
+    
+    template = 'Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}'
+    print(template.format(epoch+1,
+                        train_loss.result(),
+                        train_accuracy.result()*100,
+                        test_loss.result(),
+                        test_accuracy.result()*100))
+        
 
 
 logger.info('------------------logging finish---------------------')
