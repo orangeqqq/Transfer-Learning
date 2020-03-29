@@ -2,3 +2,145 @@
 2020-03-07 21:48:21,521-__main__-INFO-this is log
 2020-03-07 21:50:19,031-__main__-INFO-this is log
 2020-03-07 21:52:22,024-__main__-INFO-this is log
+2020-03-21 17:27:33,602-__main__-INFO-this is log
+2020-03-21 17:40:23,453-__main__-INFO-this is log
+2020-03-21 17:51:51,561-__main__-INFO-this is log
+2020-03-21 17:56:15,704-__main__-INFO-this is log
+2020-03-21 18:03:13,364-__main__-INFO-this is log
+2020-03-24 16:43:04,553-__main__-INFO-this is log
+2020-03-24 17:06:10,824-__main__-INFO-this is log
+2020-03-25 19:10:18,813-__main__-INFO-this is log
+2020-03-25 19:18:18,216-__main__-ERROR-Error
+Traceback (most recent call last):
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 261, in get_train_test_set
+    train_data = list(map(self.load_and_preprocess_image,train_paths))
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 308, in load_and_preprocess_image
+    return self.preprocess_image(image)
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 299, in preprocess_image
+    image /=255
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 915, in binary_op_wrapper
+    return func(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 1008, in _truediv_python3
+    return gen_math_ops.real_div(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\gen_math_ops.py", line 7297, in real_div
+    _ops.raise_from_not_ok_status(e, name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\framework\ops.py", line 6606, in raise_from_not_ok_status
+    six.raise_from(core._status_to_exception(e.code, message), None)
+  File "<string>", line 3, in raise_from
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: OOM when allocating tensor with shape[227,227,3] and type float on /job:localhost/replica:0/task:0/device:GPU:0 by allocator GPU_0_bfc [Op:RealDiv] name: truediv/
+2020-03-25 19:25:05,251-__main__-INFO-this is log
+2020-03-25 19:25:50,565-__main__-ERROR-Error
+Traceback (most recent call last):
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 261, in get_train_test_set
+    train_data = list(map(self.load_and_preprocess_image,train_paths))
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 308, in load_and_preprocess_image
+    return self.preprocess_image(image)
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 299, in preprocess_image
+    image /=255
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 915, in binary_op_wrapper
+    return func(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 1008, in _truediv_python3
+    return gen_math_ops.real_div(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\gen_math_ops.py", line 7297, in real_div
+    _ops.raise_from_not_ok_status(e, name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\framework\ops.py", line 6606, in raise_from_not_ok_status
+    six.raise_from(core._status_to_exception(e.code, message), None)
+  File "<string>", line 3, in raise_from
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: OOM when allocating tensor with shape[227,227,3] and type float on /job:localhost/replica:0/task:0/device:GPU:0 by allocator GPU_0_bfc [Op:RealDiv] name: truediv/
+2020-03-25 19:29:01,270-__main__-INFO-this is log
+2020-03-25 19:29:44,101-__main__-ERROR-Error
+Traceback (most recent call last):
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 261, in get_train_test_set
+    train_data = list(map(self.load_and_preprocess_image,train_paths))
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 308, in load_and_preprocess_image
+    return self.preprocess_image(image)
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 299, in preprocess_image
+    image /=255
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 915, in binary_op_wrapper
+    return func(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 1008, in _truediv_python3
+    return gen_math_ops.real_div(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\gen_math_ops.py", line 7297, in real_div
+    _ops.raise_from_not_ok_status(e, name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\framework\ops.py", line 6606, in raise_from_not_ok_status
+    six.raise_from(core._status_to_exception(e.code, message), None)
+  File "<string>", line 3, in raise_from
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: OOM when allocating tensor with shape[227,227,3] and type float on /job:localhost/replica:0/task:0/device:GPU:0 by allocator GPU_0_bfc [Op:RealDiv] name: truediv/
+2020-03-25 19:31:27,732-__main__-INFO-this is log
+2020-03-25 19:32:10,291-__main__-ERROR-Error
+Traceback (most recent call last):
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 261, in get_train_test_set
+    train_data = list(map(self.load_and_preprocess_image,train_paths))
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 308, in load_and_preprocess_image
+    return self.preprocess_image(image)
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 299, in preprocess_image
+    image /=255
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 915, in binary_op_wrapper
+    return func(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 1008, in _truediv_python3
+    return gen_math_ops.real_div(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\ops\gen_math_ops.py", line 7297, in real_div
+    _ops.raise_from_not_ok_status(e, name)
+  File "C:\Users\123\Anaconda3\envs\tf2gpu\lib\site-packages\tensorflow_core\python\framework\ops.py", line 6606, in raise_from_not_ok_status
+    six.raise_from(core._status_to_exception(e.code, message), None)
+  File "<string>", line 3, in raise_from
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: OOM when allocating tensor with shape[227,227,3] and type float on /job:localhost/replica:0/task:0/device:GPU:0 by allocator GPU_0_bfc [Op:RealDiv] name: truediv/
+2020-03-25 19:36:34,262-__main__-INFO-this is log
+2020-03-25 19:44:14,920-__main__-ERROR-Error
+Traceback (most recent call last):
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 261, in get_train_test_set
+    train_data = list(map(self.load_and_preprocess_image,train_paths))
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 308, in load_and_preprocess_image
+    return self.preprocess_image(image)
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 299, in preprocess_image
+    image /=255
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 915, in binary_op_wrapper
+    return func(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 1008, in _truediv_python3
+    return gen_math_ops.real_div(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\ops\gen_math_ops.py", line 7297, in real_div
+    _ops.raise_from_not_ok_status(e, name)
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\framework\ops.py", line 6606, in raise_from_not_ok_status
+    six.raise_from(core._status_to_exception(e.code, message), None)
+  File "<string>", line 3, in raise_from
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: OOM when allocating tensor with shape[227,227,3] and type float on /job:localhost/replica:0/task:0/device:GPU:0 by allocator GPU_0_bfc [Op:RealDiv] name: truediv/
+2020-03-25 20:36:36,151-__main__-INFO-this is log
+2020-03-25 20:37:13,412-__main__-ERROR-Error
+Traceback (most recent call last):
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 269, in get_train_test_set
+    train_data = list(map(self.load_and_preprocess_image,train_paths))
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 316, in load_and_preprocess_image
+    return self.preprocess_image(image)
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 307, in preprocess_image
+    image /=255
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 915, in binary_op_wrapper
+    return func(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 1008, in _truediv_python3
+    return gen_math_ops.real_div(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\ops\gen_math_ops.py", line 7297, in real_div
+    _ops.raise_from_not_ok_status(e, name)
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\framework\ops.py", line 6606, in raise_from_not_ok_status
+    six.raise_from(core._status_to_exception(e.code, message), None)
+  File "<string>", line 3, in raise_from
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: OOM when allocating tensor with shape[227,227,3] and type float on /job:localhost/replica:0/task:0/device:GPU:0 by allocator GPU_0_bfc [Op:RealDiv] name: truediv/
+2020-03-25 20:37:32,365-__main__-INFO-this is log
+2020-03-25 20:38:13,390-__main__-ERROR-Error
+Traceback (most recent call last):
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 269, in get_train_test_set
+    train_data = list(map(self.load_and_preprocess_image,train_paths))
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 316, in load_and_preprocess_image
+    return self.preprocess_image(image)
+  File "f:/pythonwork/Transfer-Learning/tf2_DAN.py", line 307, in preprocess_image
+    image /=255
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 915, in binary_op_wrapper
+    return func(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\ops\math_ops.py", line 1008, in _truediv_python3
+    return gen_math_ops.real_div(x, y, name=name)
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\ops\gen_math_ops.py", line 7297, in real_div
+    _ops.raise_from_not_ok_status(e, name)
+  File "C:\Users\123\Anaconda3\envs\tf2\lib\site-packages\tensorflow_core\python\framework\ops.py", line 6606, in raise_from_not_ok_status
+    six.raise_from(core._status_to_exception(e.code, message), None)
+  File "<string>", line 3, in raise_from
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: OOM when allocating tensor with shape[227,227,3] and type float on /job:localhost/replica:0/task:0/device:GPU:0 by allocator GPU_0_bfc [Op:RealDiv] name: truediv/
+2020-03-25 21:09:10,447-__main__-INFO-this is log
+2020-03-25 21:54:18,408-__main__-INFO-------------------logging finish---------------------
