@@ -8,8 +8,15 @@ import logging
 import functools
 import os
 from datetime import datetime
+import pathlib
+import random
+
+#
+random.seed(12)
+
 #只使用CPU
 #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # ='-1' 设置gpu不可见
+
 
 #设置GPU设备使用
 gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
@@ -18,18 +25,18 @@ cpus = tf.config.experimental.list_physical_devices(device_type='CPU')
 for gpu in gpus:
     tf.config.experimental.set_memory_growth(device=gpu,enable=True)
 
-#tf.config.experimental.set_visible_devices(devices=gpus[0],device_type='GPU')
+tf.config.experimental.set_visible_devices(devices=gpus[0],device_type='GPU')
 #tf.config.experimental.set_visible_devices(devices=cpus,device_type='CPU')
 
 #超参数设置
 source_domain_path = "f:/pythonwork/DAN/PACS_dataset/kfold/cartoon/"
 target_domain_path = "f:/pythonwork/DAN/PACS_dataset/kfold/photo/"
-checkpoint_path = "f:/pythonwork/DAN/save"
+checkpoint_path = "f:/pythonwork/DAN/save_dan"
 tb_log_dir = 'f:/pythonwork/DAN/tensorboard'
 
 learning_rate = 0.01
-batch_size = 100
-n_epoch = 2
+batch_size = 50
+n_epoch = 15
 lamda = np.array([1,1,1])  #作者实验给出
 
 optimizer = tf.keras.optimizers.Adam(learning_rate= learning_rate)
@@ -64,14 +71,14 @@ class AdaptiveLayer(tf.keras.layers.Layer):
         # 初始化代码
         self.units = units
         self.activation = activation
-        self.gamma = gamma
+        self.gamma = gamma             #gammam用于选择核函数
 
     def build(self, input_shape):
         # input_shape 是一个 TensorShape 类型对象，提供输入的形状
         # 在第一次使用该层的时候调用该部分代码，在这里创建变量可以使得变量的形状自适应输入的形状
         # 而不需要使用者额外指定变量形状。
         # 如果已经可以完全确定变量的形状，也可以在__init__部分创建变量
-        self.w = self.add_weight(name='kernel',shape=[input_shape[-1],self.units],initializer=tf.zeros_initializer())
+        self.w = self.add_weight(name='kernel',shape=[input_shape[-1],self.units],initializer=tf.zeros_initializer())  #因为是全连接层，所以权重shape 应取input最后一维
         self.b = self.add_weight(name="bias",shape=[self.units],initializer=tf.zeros_initializer())
 
     """def call(self, inputs_1,inputs_2=None,training=False):
@@ -197,36 +204,42 @@ class DAN(tf.keras.Model):
 
         #较少参数
                  
-        self.conv1 = tf.keras.layers.Conv2D(activation=tf.nn.relu,
-                                        filters=36,
+        self.conv1 = tf.keras.layers.Conv2D(
+                                        filters=54,
                                         kernel_size = [3,3],
                                         padding='same',
                                         strides=4)
+        self.bn1 = tf.keras.layers.BatchNormalization()
         self.pool1 = tf.keras.layers.MaxPool2D(pool_size=[3,3],strides=2,padding='valid') 
-        self.conv2 = tf.keras.layers.Conv2D(activation=tf.nn.relu,
+        self.conv2 = tf.keras.layers.Conv2D(
                                         filters=36,
                                         kernel_size = [3,3],
                                         padding='same',
-                                        strides=2)
+                                        strides=3)
+        self.bn2 = tf.keras.layers.BatchNormalization()
         self.pool2 = tf.keras.layers.MaxPool2D(pool_size=[3,3],strides=2,padding='valid')
-        self.conv3 = tf.keras.layers.Conv2D(activation=tf.nn.relu,
+        self.conv3 = tf.keras.layers.Conv2D(
                                         filters=18,
                                         kernel_size = [3,3],
                                         padding='same',
                                         strides=2)
-        self.conv4 = tf.keras.layers.Conv2D(activation=tf.nn.relu,
+        self.bn3 = tf.keras.layers.BatchNormalization()
+        self.conv4 = tf.keras.layers.Conv2D(
                                         filters=9,
                                         kernel_size = [3,3],
                                         padding='same',
                                         strides=1)
-        self.conv5 = tf.keras.layers.Conv2D(activation=tf.nn.relu,
+        self.bn4 = tf.keras.layers.BatchNormalization()
+        self.conv5 = tf.keras.layers.Conv2D(
                                         filters=5,
                                         kernel_size = [3,3],
                                         padding='same',
                                         strides=1)
+        self.bn5 = tf.keras.layers.BatchNormalization()
         self.flatten = tf.keras.layers.Flatten()
         self.dense_ada8 = AdaptiveLayer(units=36,activation=tf.nn.relu)
-        self.dense_ada9 = AdaptiveLayer(units=36,activation=tf.nn.relu)
+        #self.bn6 = tf.keras.layers.BatchNormalization()
+        self.dense_ada9 = AdaptiveLayer(units=18,activation=tf.nn.relu)
         self.dense_ada10 = AdaptiveLayer(units=7) 
 
         #其它参数
@@ -238,12 +251,29 @@ class DAN(tf.keras.Model):
         training = self.training
 
         x = self.conv1(inputs)
+        x = self.bn1(x,training=training)
+        x = tf.nn.relu(x)
+
         x = self.pool1(x)
+
         x = self.conv2(x)
+        x = self.bn2(x,training=training)
+        x = tf.nn.relu(x)
+
         x = self.pool2(x)
+
         x = self.conv3(x)
+        x = self.bn3(x,training=training)
+        x = tf.nn.relu(x)
+
         x = self.conv4(x)
+        x = self.bn4(x,training=training)
+        x = tf.nn.relu(x)
+
         x = self.conv5(x)
+        x = self.bn5(x,training=training)
+        x = tf.nn.relu(x)
+
         x = self.flatten(x)
         if training:
             x,mmk_1 = self.dense_ada8(x,training=training)
@@ -263,8 +293,6 @@ class DAN(tf.keras.Model):
         return outputs
 
 #==========================数据加载，处理==============================================
-import pathlib
-import random
 
 class Data_Path_Load(object):
     '''
@@ -400,7 +428,7 @@ def shuff_batch(X,y,batch_size):
             y为对应的label
     return: 混乱后的batch images与对应label
     '''
-    rnd_idx = np.random.permutation(len(X))
+    rnd_idx = list(np.random.permutation(len(X)))
     n_batch = len(X)//batch_size
     #for idx_batch in np.array_split(rnd_idx,n_batch):  #第一组竟然会切出batch_size+1个
     for idx_batch in list_split_even(rnd_idx,n_batch,batch_size):  
